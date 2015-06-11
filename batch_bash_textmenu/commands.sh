@@ -53,7 +53,7 @@ case "$command" in
     fi
     echo -n "Arguments:"
     read commandarguments
-    echo virtualenv $envname $sitepackagesargs $commandarguments
+    virtualenv $envname $sitepackagesargs $commandarguments
     ;;
   "8")
     echo -n "Environment name (default: env):"
@@ -73,7 +73,7 @@ case "$command" in
     fi
     echo -n "Arguments:"
     read commandarguments
-    echo $envname/bin/pip install $requirementssargs $commandarguments
+    $envname/bin/pip install $requirementssargs $commandarguments
     ;;
   "9")
     echo -n "Export to directory (end with backslash):"
