@@ -1,9 +1,9 @@
 @echo off
 setlocal EnableDelayedExpansion EnableExtensions
 
-set /p "MACHINENAME=Machine name (no spaces):"
-set /p "TOKEN=ETCD Token:"
-set "INTNET=%MACHINENAME%"
+set /p "MACHINENAME=Machine name (no spaces): "
+set /p "TOKEN=ETCD Token: "
+set /p "INTNET=Internal net name: "
 set "SHAREDDIR=%cd%\shared"
 set "HDD=%cd%\%MACHINENAME%.vdi"
 set "ISO=%cd%\%MACHINENAME%.iso"
@@ -11,7 +11,6 @@ set "SHARENAME=%MACHINENAME%"
 
 set KEY_NAME=HKEY_LOCAL_MACHINE\SOFTWARE\Oracle\VirtualBox
 set VALUE_NAME=InstallDir
-
 
 FOR /F "usebackq skip=2 tokens=1-3,4,5,6" %%A IN (`reg query %KEY_NAME% /v %VALUE_NAME% /reg:64 2^>nul`) DO (
     set ValueName=%%A
@@ -84,6 +83,7 @@ echo Adding shared dir "%SHAREDDIR%" as "%SHARENAME%".
 if not exist "%SHAREDDIR%\." (
   mkdir %SHAREDDIR%
 )
+
 VBoxManage sharedfolder add "%MACHINENAME%" --name "%SHARENAME%" --hostpath "%SHAREDDIR%"
 
 VBoxManage startvm "%MACHINENAME%"
