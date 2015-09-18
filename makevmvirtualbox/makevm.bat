@@ -1,6 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion EnableExtensions
 
+for /F "tokens=1,2 delims=:" %%G in ('dir /b "*.pub" 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "PUBKEY=%%H"
+
+IF "%PUBKEY%"=="" ( 
+  echo No ssh pubkey found in directory
+  GOTO End
+)
+
 set /p "MACHINENAME=Machine name (no spaces): "
 set /p "TOKEN=ETCD Token: "
 set /p "INTNET=Internal net name: "
@@ -40,18 +47,28 @@ rem Strip spaces from BRIDGEADAPTER
 for /f "tokens=* delims= " %%a in ("%BRIDGEADAPTER%") do set BRIDGEADAPTER=%%a
 for /l %%a in (1,1,100) do if "!BRIDGEADAPTER:~-1!"==" " set BRIDGEADAPTER=!BRIDGEADAPTER:~0,-1!
 
-rem go get github.com/fivethreeo/create-coreos-vdi
-rem go get github.com/fivethreeo/create-basic-configdrive
+if not exist "create-coreos-vdi.exe" (
+  echo Buildig create-coreos-vdi
+  go get github.com/fivethreeo/create-coreos-vdi
+  go build -o .\create-coreos-vdi.exe github.com/fivethreeo/create-coreos-vdi
+)
+if not exist "create-coreos-vdi.exe" (
+  echo Buildig create-basic-configdrive
+  go get github.com/fivethreeo/create-basic-configdrive
+  go build -o .\create-basic-configdrive.exe github.com/fivethreeo/create-basic-configdrive
+)
+for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
 
-echo Buildig coreos tools
-go build -o .\create-coreos-vdi.exe github.com/fivethreeo/create-coreos-vdi
-go build -o .\create-basic-configdrive.exe github.com/fivethreeo/create-basic-configdrive
+IF "%CLONEVDI%"=="" ( 
+  create-coreos-vdi
+  for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
+)
 
-create-coreos-vdi
-
-for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
-for /F "tokens=1,2 delims=:" %%G in ('dir /b "*.pub" ^| findstr /n "^"') do if %%G equ 1 set "PUBKEY=%%H"
-
+IF "%CLONEVDI%"=="" ( 
+  echo No vdi created, debug script
+  GOTO End
+)
+echo create-basic-configdrive -H %MACHINENAME% -S %PUBKEY% -t %TOKEN%
 create-basic-configdrive -H %MACHINENAME% -S %PUBKEY% -t %TOKEN%
 
 echo cloning "%CLONEVDI%" to "%MACHINENAME%.vdi"
@@ -87,3 +104,6 @@ if not exist "%SHAREDDIR%\." (
 VBoxManage sharedfolder add "%MACHINENAME%" --name "%SHARENAME%" --hostpath "%SHAREDDIR%"
 
 VBoxManage startvm "%MACHINENAME%"
+
+:End
+pause
