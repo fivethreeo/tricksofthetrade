@@ -52,7 +52,7 @@ if not exist "create-coreos-vdi.exe" (
   go get github.com/fivethreeo/create-coreos-vdi
   go build -o .\create-coreos-vdi.exe github.com/fivethreeo/create-coreos-vdi
 )
-if not exist "create-coreos-vdi.exe" (
+if not exist "create-basic-configdrive.exe" (
   echo Buildig create-basic-configdrive
   go get github.com/fivethreeo/create-basic-configdrive
   go build -o .\create-basic-configdrive.exe github.com/fivethreeo/create-basic-configdrive
