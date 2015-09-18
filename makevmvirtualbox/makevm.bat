@@ -1,6 +1,14 @@
 @echo off
 setlocal EnableDelayedExpansion EnableExtensions
 
+rem Install virtualbox and extensions
+rem Install golang and set up PATH, GOROOT and GOPATH
+rem Drop a ssh pubkey with the extension .pub in the same directory as this file
+rem Key must be in ssh-(rsa|dsa) KEY form. No headers like ------------------
+rem Copy from puttygen do not save from puttyhen.
+rem Run this batch file, use --noget if you change the go programs locally
+rem Log in using username core using the private key in putty
+
 for /F "tokens=1,2 delims=:" %%G in ('dir /b "*.pub" 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "PUBKEY=%%H"
 
 IF "%PUBKEY%"=="" ( 
@@ -10,11 +18,16 @@ IF "%PUBKEY%"=="" (
 
 set /p "MACHINENAME=Machine name (no spaces): "
 set /p "TOKEN=ETCD Token: "
-set /p "INTNET=Internal net name: "
+set /p "INTNET=Internal net name(empty for no internal net): "
+set /p "COREOSVER=Coreos version(default stable): "
 set "SHAREDDIR=%cd%\shared"
 set "HDD=%cd%\%MACHINENAME%.vdi"
 set "ISO=%cd%\%MACHINENAME%.iso"
 set "SHARENAME=%MACHINENAME%"
+
+IF "%COREOSVER%"=="" ( 
+  set "COREOSVER=stable"
+)
 
 set KEY_NAME=HKEY_LOCAL_MACHINE\SOFTWARE\Oracle\VirtualBox
 set VALUE_NAME=InstallDir
@@ -60,7 +73,7 @@ if not exist "create-basic-configdrive.exe" (
 for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
 
 IF "%CLONEVDI%"=="" ( 
-  create-coreos-vdi
+  create-coreos-vdi -V %COREOSVER%
   for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
 )
 
@@ -71,21 +84,29 @@ IF "%CLONEVDI%"=="" (
 echo create-basic-configdrive -H %MACHINENAME% -S %PUBKEY% -t %TOKEN%
 create-basic-configdrive -H %MACHINENAME% -S %PUBKEY% -t %TOKEN%
 
-echo cloning "%CLONEVDI%" to "%MACHINENAME%.vdi"
-VBoxManage clonehd "%CLONEVDI%" "%MACHINENAME%.vdi"
+if exist "%MACHINENAME%.vdi" (
+  echo Not cloning "%CLONEVDI%" to "%MACHINENAME%.vdi", clone already exists.
+  GOTO StartVM
+)
+
+if not exist "%MACHINENAME%.vdi" (
+  echo cloning "%CLONEVDI%" to "%MACHINENAME%.vdi"
+  VBoxManage clonehd "%CLONEVDI%" "%MACHINENAME%.vdi"
+)
+
 VBoxManage modifyhd "%MACHINENAME%.vdi" --resize 10240
 
 VBoxManage createvm --name "%MACHINENAME%" --register
 
 VBoxManage modifyvm "%MACHINENAME%" --memory 1024 --vram 128
 
-
 echo Adding bridged nic using interface "%BRIDGEADAPTER%"%.
 VBoxManage modifyvm "%MACHINENAME%" --nic1 bridged --bridgeadapter1 "%BRIDGEADAPTER%"
 
-echo Adding internal net "%INTNET%" nic
-VBoxManage modifyvm "%MACHINENAME%" --nic2 intnet --intnet2 %INTNET% --nicpromisc2 allow-vms
-
+IF not "%INTNET%"=="" (
+  echo Adding internal net "%INTNET%" nic
+  VBoxManage modifyvm "%MACHINENAME%" --nic2 intnet --intnet2 %INTNET% --nicpromisc2 allow-vms
+)
 
 VBoxManage storagectl "%MACHINENAME%" --name "IDE Controller" --add ide
 
@@ -102,6 +123,8 @@ if not exist "%SHAREDDIR%\." (
 )
 
 VBoxManage sharedfolder add "%MACHINENAME%" --name "%SHARENAME%" --hostpath "%SHAREDDIR%"
+
+:StartVM
 
 VBoxManage startvm "%MACHINENAME%"
 
