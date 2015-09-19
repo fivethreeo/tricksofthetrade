@@ -5,7 +5,7 @@ rem Install virtualbox and extensions
 rem Install golang and set up PATH, GOROOT and GOPATH
 rem Drop a ssh pubkey with the extension .pub in the same directory as this file
 rem Key must be in ssh-(rsa|dsa) KEY form. No headers like ------------------
-rem Copy from puttygen do not save from puttyhen.
+rem Copy from puttygen do not save from puttygen.
 rem Run this batch file, use --noget if you change the go programs locally
 rem Log in using username core using the private key in putty
 
