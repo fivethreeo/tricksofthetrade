@@ -49,12 +49,16 @@ for /l %%a in (1,1,100) do if "!BRIDGEADAPTER:~-1!"==" " set BRIDGEADAPTER=!BRID
 
 if not exist "create-coreos-vdi.exe" (
   echo Buildig create-coreos-vdi
-  go get github.com/fivethreeo/create-coreos-vdi
+  if not "%1"=="--nogo" (
+    go get github.com/fivethreeo/create-coreos-vdi
+  )
   go build -o .\create-coreos-vdi.exe github.com/fivethreeo/create-coreos-vdi
 )
-if not exist "create-coreos-vdi.exe" (
+if not exist "reate-basic-configdrive.exe" (
   echo Buildig create-basic-configdrive
-  go get github.com/fivethreeo/create-basic-configdrive
+  if not "%1"=="--nogo" (
+    go get github.com/fivethreeo/create-basic-configdrive
+  ) 
   go build -o .\create-basic-configdrive.exe github.com/fivethreeo/create-basic-configdrive
 )
 for /F "tokens=1,2 delims=:" %%G in ('dir /b coreos*.vdi 2^>nul ^| findstr /n "^"') do if %%G equ 1 set "CLONEVDI=%%H"
