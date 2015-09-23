@@ -28,4 +28,5 @@ if "%1" equ "" (
     echo | set /p="rem " >> %fixfile%
     copy /b %fixfile% + %thefile% %fixedfile% > nul
     move %fixedfile% %thefile% > nul
+    del %fixfile%
 )
