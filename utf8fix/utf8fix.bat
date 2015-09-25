@@ -9,24 +9,23 @@ if "%1" equ "" (
     echo Use encoding UTF-8 in notepads "Save As"
     echo.
     echo Example:
-    echo     oeaeaa.bat 
+    echo     oeaeaa_error.bat 
     echo.
     echo Gives a error at the beginning
     echo.
-    echo     utf8fix oeaeaa.bat 
-    echo     oeaeaa.bat
+    echo     utf8fix oeaeaa_error.bat oeaeaa.bat 
+    echo     oeaeaa.bat 
     echo.
     echo No more error
     echo.
 ) else (
     echo Fixing %1
     set thefile=%1
+    set newfile=%2
     set fixfile=%thefile%.fix
-    set fixedfile=%thefile%.fixed
     echo @echo off > %fixfile%
     echo chcp 65001 ^> nul >> %fixfile%
     echo | set /p="rem " >> %fixfile%
-    copy /b %fixfile% + %thefile% %fixedfile% > nul
-    move %fixedfile% %thefile% > nul
+    copy /b %fixfile% + %thefile% %newfile% > nul
     del %fixfile%
 )
