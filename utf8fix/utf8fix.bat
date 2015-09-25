@@ -22,10 +22,10 @@ if "%1" equ "" (
     echo Fixing %1
     set thefile=%1
     set newfile=%2
-    set fixfile=%thefile%.fix
-    echo @echo off > %fixfile%
-    echo chcp 65001 ^> nul >> %fixfile%
-    echo | set /p="rem " >> %fixfile%
-    copy /b %fixfile% + %thefile% %newfile% > nul
-    del %fixfile%
+    set fixfile=!thefile!.fix!
+    echo @echo off > !fixfile!
+    echo chcp 65001 ^> nul >> !fixfile!
+    echo | set /p="rem " >> !fixfile!
+    copy /b !fixfile! + !thefile! !%newfile! > nul
+    del !fixfile!
 )
