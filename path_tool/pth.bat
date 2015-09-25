@@ -1,7 +1,5 @@
-@echo off
+﻿@echo off
 setlocal EnableDelayedExpansion EnableExtensions
-
-echo ø
 set args=%*
 if "%args%" neq "" (
   set "debug=%args:debug=%"
